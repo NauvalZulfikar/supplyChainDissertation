@@ -1,0 +1,31 @@
+vote = pd.DataFrame(columns=["supplier", "warehouse", "retailer"])
+
+while True:
+    supplier  = np.random.randint(1, 4)
+    warehouse = np.random.randint(1, 4)
+    retailer  = np.random.randint(1, 4)
+
+    new_row = pd.DataFrame({"supplier"  : [supplier],
+                            "warehouse" : [warehouse],
+                            "retailer"  : [retailer]})
+
+    vote = pd.concat([vote, new_row], ignore_index=True)
+
+    if supplier == warehouse == retailer:
+        break
+
+consensus = []
+
+for i in range(len(vote)):
+    if vote['supplier'][i] == vote['warehouse'][i] == vote['retailer'][i] == 1:
+        consensus.append('supplier')
+    elif vote['supplier'][i] == vote['warehouse'][i] == vote['retailer'][i] == 2:
+        consensus.append('warehouse')
+    elif vote['supplier'][i] == vote['warehouse'][i] == vote['retailer'][i] == 3:
+        consensus.append('retailer')
+    else:
+        consensus.append('')
+
+vote['consensus'] = consensus
+
+vote
