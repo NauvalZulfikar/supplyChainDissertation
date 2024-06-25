@@ -13,7 +13,7 @@ def customer(size):
     prod_name      = [f'product_{i}' for i in np.random.randint(1, 6, size=size)]
     cust_quan_req  = [i for i in np.random.randint(0,5000, size=size)]
     cust_price_ord = [i for i in np.random.uniform(0,2.5, size=size)]
-    cust_duedates  = [pd.to_datetime(datetime.date.fromordinal(i.date().toordinal() + np.random.randint(7*2))) for i in cust_ordDate]
+    cust_duedates  = [pd.to_datetime(datetime.date.fromordinal(i.date().toordinal() + np.random.randint(6,7*2))) for i in cust_ordDate]
 
     cust                   = pd.DataFrame()
     cust['cust_ordDate']   = cust_ordDate
