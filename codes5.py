@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from PIL import Image
 import numpy as np
 from data import data
@@ -52,9 +53,19 @@ def mark_light(timeline):
     for i, stage in enumerate(timeline):
         with columns[i]:
             st.markdown(f"<div style='text-align: center;'>{stage['status']}</div>", unsafe_allow_html=True)
-            transaction_color = "green" if stage["transaction"] else "gray"
-            product_color = "green" if stage["product"] else "gray"
-            delivered_color = "green" if stage["delivered"] else "gray"
+            
+            due_date = stage['duedate'].date() if isinstance(stage['duedate'], pd.Timestamp) else stage['duedate']
+            event_date = stage['date'].date() if isinstance(stage['date'], pd.Timestamp) else stage['date']
+            
+            if due_date >= event_date:
+                transaction_color = "green" if stage["transaction"] else "gray"
+                product_color = "green" if stage["product"] else "gray"
+                delivered_color = "green" if stage["delivered"] else "gray"
+            else:
+                transaction_color = "red"
+                product_color = "red"
+                delivered_color = "red"
+
             st.markdown(
                 f"<div style='text-align: center;'>"
                 f"<span style='color: {transaction_color};'>●</span>"
@@ -69,10 +80,19 @@ def hist_list(history):
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
     columns = [col1, col2, col3, col4]
     for i, stage in enumerate(history):
-        with columns[i]:        
+        with columns[i]:
+            
+            due_date = stage['duedate'].date() if isinstance(stage['duedate'], pd.Timestamp) else stage['duedate']
+            event_date = stage['date'].date() if isinstance(stage['date'], pd.Timestamp) else stage['date']
+            
+            if due_date >= event_date:
+                date_color = "green" 
+            else:
+                date_color = "red"
+
             st.markdown(f"""
             <div style="position: relative; margin-bottom: 10px;">
-                <div style="color: green; cursor: pointer;">● {stage['date']}</div>
+                <div style="color: {date_color}; cursor: pointer;">● {stage['date']}</div>
                 <div style="padding-left: 20px; color: gray;">{stage['event']}</div>
                 <div style="padding-left: 20px; color: gray;">{stage['deliver']}</div>
             </div>
@@ -94,31 +114,39 @@ tdf = df.copy().drop_duplicates(subset=col_list,keep='first').reset_index(drop=T
 # History Page
 def history_page():
     st.title("HISTORY")
-    st.dataframe(df)
+    st.dataframe(tdf)
     
     timeline = []
 
     for i in range(len(gdf)):
         supplier  = {
             "status"      : gdf['spl_id'][i], 
-            "transaction" : True if gdf['whs_paid'][i]==1 else False,
+            "duedate"     : gdf['cust_duedate'][i],
+            "date"        : gdf['date'][i],
+            "transaction" : True if gdf['spl_paid'][i]==1 else False,
             "product"     : True if gdf['spl_fulfill'][i]==1 else False,
             "delivered"   : True if gdf['spl_dlvr'][i]==1 else False,
         }
         warehouse = {
             "status"      : gdf['whs_id'][i], 
+            "duedate"     : gdf['cust_duedate'][i],
+            "date"        : gdf['date'][i],
             "transaction" : True if gdf['whs_paid'][i]==1 else False,
             "product"     : True if gdf['whs_fulfill'][i]==1 else False,
             "delivered"   : True if gdf['whs_dlvr'][i]==1 else False,
             }
         retailer  = {
             "status"      : gdf['ret_id'][i], 
+            "duedate"     : gdf['cust_duedate'][i],
+            "date"        : gdf['date'][i],
             "transaction" : True if gdf['ret_paid'][i]==1 else False,
             "product"     : True if gdf['ret_fulfill'][i]==1 else False,
             "delivered"   : True if gdf['ret_dlvr'][i]==1 else False,
             }
         customer  = {
             "status"      : gdf['cust_id'][i],
+            "duedate"     : gdf['cust_duedate'][i],
+            "date"        : gdf['date'][i],
             "transaction" : True if gdf['cust_paid'][i]==1 else False,
             "product"     : True if gdf['cust_fulfill'][i]==1 else False,
             "delivered"   : True if gdf['cust_dlvr'][i]==1 else False,
@@ -131,31 +159,35 @@ def history_page():
             st.markdown("<hr style='border: 1px solid gray;' />", unsafe_allow_html=True)
         
             hist_det = []
-        
-            for j in range(len(tdf[tdf['cust_id']==tdf['cust_id'][i]])):
+         
+            for j in range(len(tdf[tdf['cust_id']==gdf['cust_id'][i]])):
                 supplier  = {
-                    "status"  : gdf['spl_id'][j], 
-                    "date"    : tdf['date'][j] if tdf['whs_paid'][j]==1 else tdf['date'][j] if tdf['spl_dlvr'][j]==1 else tdf['date'][j], 
-                    "event"   : "Paid" if tdf['whs_paid'][j]==1 else '-',
-                    "deliver" : "Delivered" if tdf['spl_dlvr'][j]==1 else  '-'
+                    "status"  : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['spl_id'],
+                    "duedate" : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_duedate'],
+                    "date"    : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['spl_paid']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['spl_dlvr']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'], 
+                    "event"   : "Paid" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['spl_paid']==1 else '-',
+                    "deliver" : "Delivered" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['spl_dlvr']==1 else  '-'
                 }
                 warehouse  = {
-                    "status" : gdf['whs_id'][j], 
-                    "date"   : tdf['date'][j] if tdf['whs_paid'][j]==1 else tdf['date'][j] if tdf['spl_dlvr'][j]==1 else tdf['date'][j], 
-                    "event"   : "Paid" if tdf['whs_paid'][j]==1 else '-',
-                    "deliver" : "Delivered" if tdf['whs_dlvr'][j]==1 else  '-'
+                    "status" : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['whs_id'], 
+                    "duedate" : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_duedate'],
+                    "date"    : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['whs_paid']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['spl_dlvr']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'], 
+                    "event"   : "Paid" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['whs_paid']==1 else '-',
+                    "deliver" : "Delivered" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['whs_dlvr']==1 else  '-'
                 }
                 retailer  = {
-                    "status" : gdf['ret_id'][j], 
-                    "date"   : tdf['date'][j] if tdf['ret_paid'][j]==1 else tdf['date'][j] if tdf['ret_dlvr'][j]==1 else tdf['date'][j], 
-                    "event"   : "Paid" if tdf['ret_paid'][j]==1 else '-',
-                    "deliver" : "Delivered" if tdf['ret_dlvr'][j]==1 else  '-'
+                    "status" : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['ret_id'], 
+                    "duedate" : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_duedate'],
+                    "date"    : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['ret_paid']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['ret_dlvr']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'], 
+                    "event"   : "Paid" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['ret_paid']==1 else '-',
+                    "deliver" : "Delivered" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['ret_dlvr']==1 else  '-'
                 }
                 customer  = {
-                    "status" : gdf['cust_id'][j], 
-                    "date"   : tdf['date'][j] if tdf['cust_paid'][j]==1 else tdf['date'][j] if tdf['cust_dlvr'][j]==1 else tdf['date'][j], 
-                    "event"   : "Paid" if tdf['cust_paid'][j]==1 else '-',
-                    "deliver" : "Delivered" if tdf['cust_dlvr'][j]==1 else  '-'
+                    "status" : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_id'], 
+                    "duedate" : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_duedate'],
+                    "date"    : tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_paid']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'] if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_dlvr']==1 else tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['date'], 
+                    "event"   : "Paid" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_paid']==1 else '-',
+                    "deliver" : "Delivered" if tdf[tdf['cust_id']==gdf['cust_id'][i]].iloc[j]['cust_dlvr']==1 else  '-'
                 }
                 hist_det.append([supplier,warehouse,retailer,customer])
 
