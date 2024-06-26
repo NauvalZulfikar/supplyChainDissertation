@@ -55,15 +55,21 @@ def visualization(df):
 
 
     # Visualization 3: Product Share
-    pieProd = df['prod_name'].value_counts().reset_index()
-    pieProd.columns = ['prod_name', 'count']
+    barProd = df['prod_name'].value_counts().reset_index()
+    barProd.columns = ['prod_name', 'count']
 
-    fig3 = go.Figure(data=[go.Pie(
-        labels=pieProd['prod_name'],
-        values=pieProd['count'])])
+    fig3 = go.Figure(data=[go.Bar(
+        labels=barProd['prod_name'],
+        values=barProd['count'])])
 
     fig3.update_layout(
-        title='Product Share')
+        title='Product Share',
+        xaxis_title='Product Name',
+        yaxis_title='Count',
+        template='plotly_white'  # Optional: changes the visual style
+
+    fig3.update_layout(
+        title='Product Frequency')
 
     # Visualization 4: Customer and Supply Fulfillments
     # df['month'] = df['date'].dt.to_period('M')
