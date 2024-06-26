@@ -14,6 +14,10 @@ def visualization(df):
         'spl_quan_avail'
         ]].sum()
 
+# ===================================================================
+# ============================== FIG 1 ==============================
+# ===================================================================
+    
     fig1 = make_subplots(rows=2, cols=2,
                         subplot_titles=('cust_quan_req','ret_quan_avail',
                                         'whs_quan_avail','spl_quan_avail'))
@@ -41,6 +45,10 @@ def visualization(df):
         yaxis_title='Value'
     )
 
+# ===================================================================
+# ============================== FIG 2 ==============================
+# ===================================================================
+
     # Visualization 2: Product Request Fulfillment Share
     pie = pd.DataFrame({'label':['Retailer Offer','Warehouse Offer','Supplier Offer'],
                     'sum':[df.ret_fulfill.sum(),df.whs_fulfill.sum(),df.spl_fulfill.sum()]})
@@ -53,6 +61,20 @@ def visualization(df):
         title='Product Request Fulfillment Share'
     )
 
+# ===================================================================
+# ============================== FIG 3 ==============================
+# ===================================================================
+    
+    # # Visualization 3: Product Share
+    # pieProd = df['prod_name'].value_counts().reset_index()
+    # pieProd.columns = ['prod_name', 'count']
+
+    # fig3 = go.Figure(data=[go.Pie(
+    #     labels=pieProd['prod_name'],
+    #     values=pieProd['count'])])
+
+    # fig3.update_layout(
+    #     title='Product Share')
 
     # Visualization 3: Product Share
     barProd = df['prod_name'].value_counts().reset_index()
@@ -67,6 +89,10 @@ def visualization(df):
         xaxis_title='Product Name',
         yaxis_title='Count'
     )
+
+# ===================================================================
+# ============================== FIG 4 ==============================
+# ===================================================================
 
     # Visualization 4: Customer and Supply Fulfillments
     # df['month'] = df['date'].dt.to_period('M')
@@ -102,6 +128,9 @@ def visualization(df):
         yaxis_title='Values'
     )
 
+# ===================================================================
+# ============================== FIG 5 ==============================
+# ===================================================================
 
     # Visualization 5: Price and Quantity Range of Each Component
     custPri = df[['cust_quan_req','cust_price_ord']].copy().rename(columns={'cust_budg_ord':'Price','cust_quan_req':'Quant'})
