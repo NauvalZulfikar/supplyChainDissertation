@@ -63,10 +63,11 @@ def visualization(df):
         values=barProd['count'])])
 
     fig3.update_layout(
-        title='Product Share',
+        title='Product Frequency',
         xaxis_title='Product Name',
         yaxis_title='Count',
-        template='plotly_white'  # Optional: changes the visual style
+        template='plotly_white'
+    )
 
     fig3.update_layout(
         title='Product Frequency')
