@@ -66,11 +66,11 @@ def visualization(df):
         title='Product Frequency',
         xaxis_title='Product Name',
         yaxis_title='Count',
-        template='plotly_white'
+        # template='plotly_white'
     )
 
-    fig3.update_layout(
-        title='Product Frequency')
+    # fig3.update_layout(
+    #     title='Product Frequency')
 
     # Visualization 4: Customer and Supply Fulfillments
     # df['month'] = df['date'].dt.to_period('M')
