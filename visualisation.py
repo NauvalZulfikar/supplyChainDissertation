@@ -58,24 +58,15 @@ def visualization(df):
     barProd = df['prod_name'].value_counts().reset_index()
     barProd.columns = ['prod_name', 'count']
 
-    # fig3 = go.Figure(data=[go.Bar(
-    #     labels=barProd['prod_name'],
-    #     values=barProd['count'])])
-
-    fig3.add_trace(
-        go.Bar(name=barProd['prod_name'], 
-               y=barProd['count'],
-               x=barProd['prod_name']))
+    fig3 = go.Figure(data=[go.Bar(
+        x=barProd['prod_name'],
+        y=barProd['count'])])
 
     fig3.update_layout(
         title='Product Frequency',
         xaxis_title='Product Name',
-        yaxis_title='Count',
-        # template='plotly_white'
+        yaxis_title='Count'
     )
-
-    # fig3.update_layout(
-    #     title='Product Frequency')
 
     # Visualization 4: Customer and Supply Fulfillments
     # df['month'] = df['date'].dt.to_period('M')
